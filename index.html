@@ -58,7 +58,7 @@
   <script>
   (()=>{
     const START=new Date(2026,8,22),END=new Date(2027,11,31),STORE='super-trade-v1',AUTH_STORE='super-trade-auth-v1';
-    const SITE_ID='super-trade',OWNER_EMAIL='jordan@capital-trade.app',VIEWER_EMAIL='socio.super@capital-trade.app';
+    const SITE_ID='super-trade',OWNER_EMAIL='jordan@capital-trade.app',VIEWER_EMAIL='visual.super@capital-trade.app';
     const SB_URL='https://chrwrhzwarusyazfkqxx.supabase.co',SB_KEY='sb_publishable_1vSobsbmds4Yz2lhb3Vi7g_0KuiFUJ0';
     const LOCAL=/^(localhost|127\.0\.0\.1)$/.test(location.hostname),money=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}),dateLong=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'long'}),monthLong=new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}),shortDate=new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}),weekdays=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
     let state=loadLocal(),session=loadSession(),editable=LOCAL,pollTimer=null,viewMonth=new Date(START.getFullYear(),START.getMonth(),1);
