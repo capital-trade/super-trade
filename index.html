@@ -17,11 +17,29 @@
     @media(max-width:980px){.app{grid-template-columns:1fr}.sidebar{display:none}.main{padding:18px 15px 34px}.metrics{grid-template-columns:repeat(2,1fr)}.market-grid{grid-template-columns:1fr}.withdraw-card{min-height:270px}.table-card{grid-column:auto}}
     @media(max-width:620px){h1{font-size:20px}.top-actions .date-only{display:none}.metrics{gap:9px}.metric{padding:14px;min-height:103px}.metric-value,.capital-editor input{font-size:18px}.capital-editor input{width:112px}.ticker-strip{grid-template-columns:repeat(2,1fr)}#marketCanvas{height:245px}.table-toolbar{align-items:flex-start;flex-direction:column}.footer-note{flex-direction:column;gap:4px}.pill span{max-width:100px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}}
   </style>
+  <style>
+    :root{--green:#00d49a;--blue:#6d8dff}
+    body{background:radial-gradient(900px 540px at 70% -8%,#172b66 0,transparent 58%),linear-gradient(135deg,#030812,#07111f 72%)}
+    .brand-mark{width:42px;height:42px;display:grid;place-items:center;flex:0 0 auto;position:relative;overflow:hidden;border:1px solid #2c5d7f;border-radius:12px;background:radial-gradient(circle at 28% 22%,#173c55 0,transparent 42%),linear-gradient(145deg,#0a2135,#06111f);box-shadow:0 0 0 1px #00d49a20,0 0 30px #00d49a2e;color:inherit}
+    .brand-mark:after{content:"";position:absolute;inset:auto -12px -15px auto;width:32px;height:32px;border-radius:50%;background:var(--green);filter:blur(17px);opacity:.34}
+    .brand-mark svg{width:30px;height:30px;position:relative;z-index:1;overflow:visible}
+    .brand-mark .super-line{fill:none;stroke:#f4fbff;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round}
+    .brand-mark .market-line{fill:none;stroke:var(--green);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 4px #00d49a88)}
+    .brand-mark .market-dot{fill:var(--blue)}
+    .nav button:hover,.nav button.active{background:#101f42}
+    .metric{min-height:116px}
+    .capital-editor input{border-bottom-color:#4665ad}
+    .market-card,.withdraw-card{min-height:405px}
+    .money-input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #6d8dff20}
+    .access-card input:focus{border-color:var(--blue);box-shadow:0 0 0 3px #6d8dff25}
+    .access-card .enter{background:linear-gradient(90deg,var(--blue),#45a0ff)}
+    @media(max-width:620px){.metric{min-height:110px}.capital-editor input{width:105px}}
+  </style>
 </head>
 <body>
   <div class="access-layer" id="accessLayer">
     <form class="access-card" id="accessForm">
-      <div class="access-brand"><div class="brand-mark">ST</div><div><strong>SUPER TRADE</strong><span style="display:block;color:var(--muted);font-size:11px">Acesso independente</span></div></div>
+      <div class="access-brand"><div class="brand-mark"><svg viewBox="0 0 48 48" role="img" aria-label="Logo Super Trade"><path class="super-line" d="M35 13c-3-3-8-4-13-3-5 1-8 4-8 8 0 5 5 6 11 7s11 2 11 7c0 4-4 7-9 7-6 0-11-2-14-5"/><path class="market-line" d="M10 32l8-8 7 5 12-13"/><circle class="market-dot" cx="37" cy="16" r="3"/></svg></div><div><strong>SUPER TRADE</strong><span style="display:block;color:var(--muted);font-size:11px">Acesso independente</span></div></div>
       <h2>Entrar no painel</h2>
       <p>Use a senha de proprietário ou a senha de visualização do Super Trade.</p>
       <label for="accessPassword">Senha de acesso</label>
@@ -33,7 +51,7 @@
   </div>
   <div class="app">
     <aside class="sidebar">
-      <div class="brand"><div class="brand-mark">ST</div><div><strong>SUPER TRADE</strong><span>Controle operacional</span></div></div>
+      <div class="brand"><div class="brand-mark"><svg viewBox="0 0 48 48" role="img" aria-label="Logo Super Trade"><path class="super-line" d="M35 13c-3-3-8-4-13-3-5 1-8 4-8 8 0 5 5 6 11 7s11 2 11 7c0 4-4 7-9 7-6 0-11-2-14-5"/><path class="market-line" d="M10 32l8-8 7 5 12-13"/><circle class="market-dot" cx="37" cy="16" r="3"/></svg></div><div><strong>SUPER TRADE</strong><span>Controle operacional</span></div></div>
       <div class="nav-title">PAINEL</div>
       <nav class="nav"><button class="active" data-scroll="top">Visão geral</button><button data-scroll="market">Mercado</button><button data-scroll="operations">Operações diárias</button><button data-scroll="withdraw">Saques semanais</button></nav>
       <div class="period-card"><small>Período operacional</small><b>22/09/2026 — 31/12/2027</b><div class="period-line"><i id="periodProgress"></i></div></div>
