@@ -3,17 +3,17 @@
   const SITE_ID='super-trade',OWNER_EMAIL='jordan@capital-trade.app',VIEWER_EMAIL='visual.super@capital-trade.app';
   const SB_URL='https://chrwrhzwarusyazfkqxx.supabase.co',SB_KEY='sb_publishable_1vSobsbmds4Yz2lhb3Vi7g_0KuiFUJ0';
   const LOCAL=/^(localhost|127\.0\.0\.1)$/.test(location.hostname),money=new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}),dateLong=new Intl.DateTimeFormat('pt-BR',{weekday:'long',day:'2-digit',month:'long'}),monthLong=new Intl.DateTimeFormat('pt-BR',{month:'long',year:'numeric'}),shortDate=new Intl.DateTimeFormat('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'}),weekdays=['domingo','segunda-feira','terça-feira','quarta-feira','quinta-feira','sexta-feira','sábado'];
-  let state=loadLocal(),session=loadSession(),editable=LOCAL,pollTimer=null,viewMonth=new Date(START.getFullYear(),START.getMonth(),1);
+  let state=loadLocal(),session=loadSession(),editable=LOCAL,pollTimer=null,viewMonth=new Date(Math.max(START.getTime(),Math.min(END.getTime(),Date.now())));viewMonth=new Date(viewMonth.getFullYear(),viewMonth.getMonth(),1);
 
   function baseState(){return{capital:10000,entries:{},withdrawals:{}}}
-  function loadLocal(){try{const s=JSON.parse(localStorage.getItem(STORE))||baseState();return{capital:Number(s.capital)||10000,entries:s.entries||{},withdrawals:s.withdrawals||{}}}catch{return baseState()}}
+  function loadLocal(){try{const s=JSON.parse(localStorage.getItem(STORE))||baseState();return{capital:Number.isFinite(Number(s.capital))&&s.capital!=null?Number(s.capital):10000,entries:s.entries||{},withdrawals:s.withdrawals||{}}}catch{return baseState()}}
   function loadSession(){try{return JSON.parse(localStorage.getItem(AUTH_STORE))}catch{return null}}
   function key(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
   function parseBR(v){return Number(String(v).replace(/\s/g,'').replace(/\./g,'').replace(',','.').replace(/[^0-9.-]/g,''))||0}
   function daysBetween(a,b){return Math.ceil((b-a)/86400000)}
   function eachDay(a,b,fn){for(let d=new Date(a);d<=b;d.setDate(d.getDate()+1))fn(new Date(d))}
   function has(obj,k){return Object.prototype.hasOwnProperty.call(obj,k)}
-  function summarize(){let pnl=0,withdraw=0,positive=0,negative=0,balance=state.capital;eachDay(START,END,d=>{const k=key(d),v=Number(state.entries[k]||0),w=Number(state.withdrawals[k]||0);pnl+=v;withdraw+=w;balance+=v-w;if(v>0)positive++;if(v<0)negative++});return{pnl,withdraw,positive,negative,balance}}
+  function summarize(){let pnl=0,withdraw=0,positive=0,negative=0,balance=state.capital;eachDay(START,END,d=>{const k=key(d),v=Number(state.entries[k]||0),w=Number(state.withdrawals[k]||0);pnl+=v;withdraw+=w;balance+=v-w;if(v>0)positive++;if(v<0)negative++});return{pnl,withdraw,positive,negative,balance,available:Math.max(0,balance-state.capital)}}
 
   function updateProjection(){
     const first=new Date(viewMonth.getFullYear(),viewMonth.getMonth(),1),last=new Date(viewMonth.getFullYear(),viewMonth.getMonth()+1,0),from=first<START?START:first,to=last>END?END:last;
@@ -23,7 +23,12 @@
     projectionNote.textContent=count?`${count} ${count===1?'dia usado':'dias usados'} · média ${money.format(average)}/dia`:'Aguardando resultados';
     projectionFill.style.width=Math.min(100,Math.abs(pct))+'%';projectionFill.style.background=pct<0?'var(--red)':'var(--green)';
   }
-  function updateSummary(){const s=summarize();totalResult.textContent=money.format(s.pnl);totalResult.style.color=s.pnl<0?'var(--red)':s.pnl>0?'var(--green)':'var(--text)';totalWithdraw.textContent=money.format(s.withdraw);positiveDays.textContent=s.positive;negativeDays.textContent=s.negative;updateProjection();updateNextSaturday()}
+  function updateSummary(){const s=summarize();
+    currentBalance.textContent=money.format(s.balance);currentBalance.style.color=s.balance<0?'var(--red)':'var(--text)';
+    availableWithdraw.textContent=money.format(s.available);availableWithdraw.style.color=s.available>0?'var(--green)':'var(--text)';
+    const today=key(new Date()),todayValue=Number(state.entries[today]||0);
+    todayResult.textContent=money.format(todayValue);todayResult.style.color=todayValue<0?'var(--red)':todayValue>0?'var(--green)':'var(--text)';
+    todayResultNote.textContent=has(state.entries,today)?'Ganho ou perda registrado em '+shortDate.format(new Date()):'Nenhum resultado registrado hoje';totalResult.textContent=money.format(s.pnl);totalResult.style.color=s.pnl<0?'var(--red)':s.pnl>0?'var(--green)':'var(--text)';totalWithdraw.textContent=money.format(s.withdraw);positiveDays.textContent=s.positive;negativeDays.textContent=s.negative;updateProjection();updateNextSaturday()}
 
   function renderTable(){
     tradeRows.innerHTML='';monthLabel.textContent=monthLong.format(viewMonth).replace(/^./,c=>c.toUpperCase());const first=new Date(viewMonth.getFullYear(),viewMonth.getMonth(),1),last=new Date(viewMonth.getFullYear(),viewMonth.getMonth()+1,0);
@@ -50,7 +55,7 @@
   async function signIn(email,password){const d=await authFetch('/auth/v1/token?grant_type=password',{method:'POST',body:JSON.stringify({email,password})});return{access_token:d.access_token,refresh_token:d.refresh_token,expires_at:Date.now()+d.expires_in*1000,email:d.user.email}}
   async function validToken(){if(session.expires_at-Date.now()>60000)return session.access_token;const d=await authFetch('/auth/v1/token?grant_type=refresh_token',{method:'POST',body:JSON.stringify({refresh_token:session.refresh_token})});session={access_token:d.access_token,refresh_token:d.refresh_token,expires_at:Date.now()+d.expires_in*1000,email:d.user.email};localStorage.setItem(AUTH_STORE,JSON.stringify(session));return session.access_token}
   async function api(path,opt={}){const token=await validToken(),r=await fetch(SB_URL+'/rest/v1/'+path,{...opt,headers:{apikey:SB_KEY,Authorization:'Bearer '+token,'Content-Type':'application/json',...(opt.headers||{})}});if(r.status===401){logout();throw Error('AUTH')}if(!r.ok)throw Error('SYNC');return r.status===204?null:r.json()}
-  async function pullRemote(){if(LOCAL||!session||document.activeElement?.matches('.money-input,.withdraw-input,#initialCapital'))return;try{const rows=await api(`trading_dashboards?id=eq.${SITE_ID}&select=state`);if(rows?.[0]?.state){state={capital:Number(rows[0].state.capital)||10000,entries:rows[0].state.entries||{},withdrawals:rows[0].state.withdrawals||{}};localStorage.setItem(STORE,JSON.stringify(state));renderAll()}}catch{accessMode.textContent='Reconectando…'}}
+  async function pullRemote(){if(LOCAL||!session||document.activeElement?.matches('.money-input,.withdraw-input,#initialCapital'))return;try{const rows=await api(`trading_dashboards?id=eq.${SITE_ID}&select=state`);if(rows?.[0]?.state){state={capital:Number.isFinite(Number(rows[0].state.capital))&&rows[0].state.capital!=null?Number(rows[0].state.capital):10000,entries:rows[0].state.entries||{},withdrawals:rows[0].state.withdrawals||{}};localStorage.setItem(STORE,JSON.stringify(state));renderAll()}}catch{accessMode.textContent='Reconectando…'}}
   async function saveRemote(){localStorage.setItem(STORE,JSON.stringify(state));if(LOCAL)return;if(!editable)throw Error('READ_ONLY');await api(`trading_dashboards?id=eq.${SITE_ID}`,{method:'PATCH',headers:{Prefer:'return=minimal'},body:JSON.stringify({state,updated_at:new Date().toISOString()})})}
   async function start(){setMode();accessLayer.classList.add('hidden');renderAll();await pullRemote();clearInterval(pollTimer);if(!LOCAL)pollTimer=setInterval(pullRemote,5000);registerTool()}
   function logout(){session=null;editable=false;localStorage.removeItem(AUTH_STORE);clearInterval(pollTimer);accessPassword.value='';accessLayer.classList.remove('hidden')}
